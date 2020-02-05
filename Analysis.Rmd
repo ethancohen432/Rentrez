@@ -4,10 +4,18 @@ author: "Ethan Cohen"
 date: "05/02/2020"
 output: html_document
 ---
+### Borrelia burgdorferi
+The sequences of DNA used within this assignment belong to the organism Borrelia burgdorferi. For more information about the species, the link for the wikipedia page can be found here:
 
+[Click HERE to reach the Borrelia_burgdorferi wikipedia page](https://en.wikipedia.org/wiki/Borrelia_burgdorferi)
+```{r}
+knitr::include_graphics("Borrelia_burgdorferi.jpg")
+```
+
+### Reading the csv and Printing the Individual Sequences
+Here, the Sequences.csv (which was generated in the Downloard.R script) is read into a new object called SeqData. The Sequence data is then printed out one after the other.
 ```{r}
 SeqData <- read.csv("Sequences.csv", header =TRUE, row.names = 1)
-print (SeqData$Sequences)
 
 #Printing each sequence
 print(as.character(SeqData$Sequences[1]))
@@ -16,59 +24,58 @@ print(as.character(SeqData$Sequences[3]))
 
 ```
 
+### Finding the Amount of Each Nucleotide Within Each Sequences
+Next, the number of each base pair in each of the three sequences is counted and placed into separate objects within a matrix. This is done through the use of regular expressions, specifically the gsub() function to remove all the nucleotides from a sequence which will not be counted. The same two lines of code are repeated for every nucleotide being counted.
+
 ```{r}
 #Discovering the amount of each nucleotide within each of the three sequences
 A <- gsub("[TCG]", "", as.matrix(SeqData$Sequences))
-OnlyA <- print(nchar(A, type ="chars"))
+OnlyA <- print(nchar(A))
 
 T <- gsub("[ACG]", "", as.matrix(SeqData$Sequences))
-OnlyT <- print(nchar(T, type ="chars"))
+OnlyT <- print(nchar(T))
 
 C <- gsub("[ATG]", "", as.matrix(SeqData$Sequences))
-OnlyC <- print(nchar(C, type ="chars"))
+OnlyC <- print(nchar(C))
 
 G <- gsub("[ACT]", "", as.matrix(SeqData$Sequences))
-OnlyG <- print(nchar(T, type ="chars"))
+OnlyG <- print(nchar(T))
 ```
 
-
-```{r}
+### Summary of the Nucleotide Count Data
+Here, the knir and the dplyr packages were employed to generate a table possessing the Nucleotide count data for each of the three sequences found withtin the SeqData object created previously. 
+Here, an object called SequenceID is created with the accession numbers of each sequence. This is then added as the column within the SeqData object along with the objects generated in the previous chunk. Through the use of knitr::kable, a table was made which possesses the nucleotide count data for each of the sequences
+```{r, warning=FALSE, message=FALSE}
 library(knitr)
 library(dplyr)
 
-#Creating a Table
 SequenceID <- c("HQ433692.1", "HQ433694.1", "HQ433691.1")
 NuTable <- transmute(SeqData, SequenceID, OnlyA, OnlyT, OnlyC, OnlyG)
 
-knitr::kable(NuTable,
-             col.names = c("SequenceID","Adenine Count","Thymine Count", "Cytosine Count","Guanine Count"))
+knitr::kable(NuTable,col.names = c("SequenceID","Adenine Count","Thymine Count", "Cytosine Count","Guanine Count"))
 
 ```
 
+
+### GC Content calculations
+Here, the GC content within each DNA sequence was calculated and placed into a new column wihtin the NuTable object generated in the previous chunk. The names of the columns were then changed accordingly, and a table was created, through the use of the knitr::kable function, was made which possesses the SequenceID and the GC content of each sequence of DNA.
 ```{r}
 #GC Content Calculations
 gcContent <- mutate(NuTable, (OnlyC + OnlyG)/(OnlyC + OnlyG + OnlyA + OnlyT)*100)
 names(gcContent) <- c("SequenceID", "OnlyA", "OnlyT", "OnlyC", "OnlyG", "GC Content")
 
 gcTable <- select(gcContent, "SequenceID", "GC Content")
-print(gcTable)
+knitr::kable(gcTable)
 ```
 
-[Click HERE to reach the Borrelia_burgdorferi wikipedia page](https://en.wikipedia.org/wiki/Borrelia_burgdorferi)
-```{r}
-knitr::include_graphics("Borrelia_burgdorferi.jpg")
-
-```
-
-
-```{r}
-install.packages("ggplot2")
+### Importing and Plotting and New Data Set
+A data set called "GC_content.csv" was imported and utilized in this next part of the assignment. First, since the data only provides us with the individual G and individual C content, they must be combined into a new column which will will provide the total GC content of each specimen. The column name given is "GC_Content". Next, through the use of the ggplot2 package, the data was plotted with the individual specimen IDs on the X-axis, and the GC_content on the Y-axis.
+Each point on the graph is colour coded according to the species which it belongs to (1,2, or 3). Refer to the legend to determine which species each plot point belongs to. 
+```{r, warning=FALSE, message=FALSE}
 library(ggplot2)
 NEWData <- read.csv("GC_content.csv", header =TRUE)
 TableNEWData <- mutate(NEWData, "GC_Content" = (G + C))
 
 qplot (x=ID, y=GC_Content, data=TableNEWData, xlab="Species Identifier", ylab="Percent GC Content", main="Percentage GC Content for 1000 Specimens for 3 different species", colour = Species)
 ```
-
-
 

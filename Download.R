@@ -1,4 +1,3 @@
-
 #Rentrez Package provides an interface to the NCBI's 'EUtils' API
 #This allows users to search databases such as PubMed and NCBI
 install.packages("rentrez")
